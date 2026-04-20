@@ -1,1 +1,0 @@
-curl http://https://demo-scotty-codespace-2026a.onrender.com/users
