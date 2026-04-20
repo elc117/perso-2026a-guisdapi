@@ -2,7 +2,7 @@
 
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/xDmvZ4it)
 
-Este projeto é um sistema simples para gerenciar listas de leitura, desenvolvido como parte da disciplina de **Paradigmas de Programação** (UFSM). A aplicação utiliza o framework **Scotty** para fornecer uma API Web e foca na aplicação de conceitos de programação funcional.
+Este projeto é um sistema para gerenciar listas de leitura, desenvolvido como parte da disciplina de **Paradigmas de Programação** (UFSM). A aplicação utiliza o framework **Scotty** para fornecer uma API Web e foca na aplicação de conceitos de programação funcional.
 
 ## 🛠️ Tecnologias Utilizadas
 
