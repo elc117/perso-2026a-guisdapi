@@ -1,44 +1,57 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Store where
 
-import Data.IORef
-import Data.List (find)
+import Database.SQLite.Simple
 import Types
 
-type Store = IORef [Book]
+type Store = String
 
+-- Inicializa o banco e cria a tabela se não existir
 newStore :: IO Store
-newStore = newIORef []
+newStore = do
+    let dbPath = "books.db"
+    conn <- open dbPath
+    execute_ conn "CREATE TABLE IF NOT EXISTS books (bookId INTEGER PRIMARY KEY, title TEXT, totalPages INTEGER, readPages INTEGER, rating INTEGER, notes TEXT, status TEXT)"
+    close conn
+    return dbPath
 
 getAll :: Store -> IO [Book]
-getAll store = readIORef store
+getAll dbPath = do
+    conn <- open dbPath
+    books <- query_ conn "SELECT bookId, title, totalPages, readPages, rating, notes, status FROM books"
+    close conn
+    return books
 
 getById :: Store -> Int -> IO (Maybe Book)
-getById store bid = do
-  books <- readIORef store
-  return $ find (\b -> bookId b == bid) books
+getById dbPath bid = do
+    conn <- open dbPath
+    books <- query conn "SELECT bookId, title, totalPages, readPages, rating, notes, status FROM books WHERE bookId = ?" (Only bid) :: IO [Book]
+    close conn
+    case books of
+        [book] -> return (Just book)
+        _      -> return Nothing
 
--- Correção: Uso de modifyIORef' (estrito) para evitar memory leak
 addBook :: Store -> Book -> IO ()
-addBook store book = modifyIORef' store (book :)
+addBook dbPath book = do
+    conn <- open dbPath
+    execute conn "INSERT INTO books (bookId, title, totalPages, readPages, rating, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)" book
+    close conn
 
 updateBook :: Store -> Book -> IO Bool
-updateBook store updatedBook = do
-  books <- readIORef store
-  let (newBooks, found) = foldr step ([], False) books
-  if found
-    then writeIORef store newBooks >> return True
-    else return False
-  where
-    step b (acc, f)
-      | bookId b == bookId updatedBook = (updatedBook : acc, True)
-      | otherwise                      = (b : acc, f)
+updateBook dbPath book = do
+    conn <- open dbPath
+    execute conn "UPDATE books SET title = ?, totalPages = ?, readPages = ?, rating = ?, notes = ?, status = ? WHERE bookId = ?" 
+        (title book, totalPages book, readPages book, rating book, notes book, status book, bookId book)
+    -- Verifica se alguma linha foi afetada
+    changesCount <- changes conn
+    close conn
+    return (changesCount > 0)
 
--- Correção: Uso de modifyIORef' (estrito)
 deleteBook :: Store -> Int -> IO Bool
-deleteBook store bid = do
-  books <- readIORef store
-  case find (\b -> bookId b == bid) books of
-    Nothing -> return False
-    Just _  -> do
-      modifyIORef' store (\bs -> filter (\b -> bookId b /= bid) bs)
-      return True
+deleteBook dbPath bid = do
+    conn <- open dbPath
+    execute conn "DELETE FROM books WHERE bookId = ?" (Only bid)
+    changesCount <- changes conn
+    close conn
+    return (changesCount > 0)
