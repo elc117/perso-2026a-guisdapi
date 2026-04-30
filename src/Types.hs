@@ -1,10 +1,26 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Types where
+
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON, FromJSON)
+
+data Status = WantToRead | Reading | Finished
+  deriving (Show, Eq, Generic)
+
+-- Derivação automática para conversão JSON
+instance ToJSON Status
+instance FromJSON Status
 
 data Book = Book 
   { bookId     :: Int
   , title      :: String
-  , totalPages :: Float  -- Usando Float para facilitar a divisão da porcentagem
-  , readPages  :: Float
-  , rating     :: Int    -- Ex: 1 a 5 estrelas
+  , totalPages :: Int
+  , readPages  :: Int
+  , rating     :: Int
   , notes      :: String
-  } deriving (Show, Eq)
+  , status     :: Status
+  } deriving (Show, Eq, Generic)
+
+-- Derivação automática para conversão JSON
+instance ToJSON Book
+instance FromJSON Book

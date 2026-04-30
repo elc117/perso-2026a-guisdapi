@@ -5,30 +5,12 @@ module Main where
 import Web.Scotty
 import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 import Control.Monad.IO.Class (liftIO)
-import Data.IORef
-import Data.List (intercalate)
-import Data.Text.Lazy (pack)
 import Network.HTTP.Types.Status (status404)
+import Data.Aeson (object, (.=))
 
 import Types
 import Logic
 import Store
-
--- Converte um Book para string JSON
-bookToJson :: Book -> String
-bookToJson b = "{"
-  ++ "\"bookId\":"    ++ show (bookId b)    ++ ","
-  ++ "\"title\":"     ++ show (title b)     ++ ","
-  ++ "\"totalPages\":" ++ show (totalPages b) ++ ","
-  ++ "\"readPages\":"  ++ show (readPages b)  ++ ","
-  ++ "\"rating\":"    ++ show (rating b)    ++ ","
-  ++ "\"notes\":"     ++ show (notes b)     ++ ","
-  ++ "\"progress\":"  ++ show (calcProgress b)
-  ++ "}"
-
--- Converte lista de Books para JSON array
-booksToJson :: [Book] -> String
-booksToJson books = "[" ++ intercalate "," (map bookToJson books) ++ "]"
 
 main :: IO ()
 main = do
@@ -36,67 +18,47 @@ main = do
   scotty 3000 $ do
     middleware logStdoutDev
 
-    -- GET /books — lista todos
     get "/books" $ do
       books <- liftIO $ getAll store
-      setHeader "Content-Type" "application/json"
-      text $ pack $ booksToJson books
+      json books -- Serialização segura via Aeson
 
-    -- GET /books/:id — busca por ID
     get "/books/:id" $ do
       bid <- pathParam "id"
       result <- liftIO $ getById store bid
-      setHeader "Content-Type" "application/json"
       case result of
         Nothing -> do
           status status404
-          text "{\"error\":\"Livro não encontrado\"}"
-        Just b  -> text $ pack $ bookToJson b
+          json $ object ["error" .= ("Livro não encontrado" :: String)]
+        Just b  -> json b
 
-    -- POST /books — adiciona livro
+    -- POST reformulado: Recebe o payload JSON completo e faz o parse automático
     post "/books" $ do
-      bid      <- formParam "bookId"
-      t        <- formParam "title"
-      tp       <- formParam "totalPages"
-      rp       <- formParam "readPages"
-      rat      <- formParam "rating"
-      ns       <- formParam "notes"
-      let book = Book bid t tp rp rat ns
-      liftIO $ addBook store book
-      setHeader "Content-Type" "application/json"
-      text $ pack $ bookToJson book
+      bookReq <- jsonData
+      liftIO $ addBook store bookReq
+      json bookReq
 
-    -- PUT /books/:id — atualiza livro
     put "/books/:id" $ do
-      bid <- formParam "id"
-      t   <- formParam "title"
-      tp  <- formParam "totalPages"
-      rp  <- formParam "readPages"
-      rat <- formParam "rating"
-      ns  <- formParam "notes"
-      let updated = Book bid t tp rp rat ns
-      ok <- liftIO $ updateBook store updated
-      setHeader "Content-Type" "application/json"
+      bid <- pathParam "id"
+      updated <- jsonData
+      -- Garante que a entidade atualizada respeite o ID da URL
+      let bookToUpdate = updated { bookId = bid }
+      ok <- liftIO $ updateBook store bookToUpdate
       if ok
-        then text $ pack $ bookToJson updated
+        then json bookToUpdate
         else do
           status status404
-          text "{\"error\":\"Livro não encontrado\"}"
+          json $ object ["error" .= ("Livro não encontrado" :: String)]
 
-    -- DELETE /books/:id — remove livro
     delete "/books/:id" $ do
       bid <- pathParam "id"
       ok  <- liftIO $ deleteBook store bid
-      setHeader "Content-Type" "application/json"
       if ok
-        then text "{\"message\":\"Livro removido\"}"
+        then json $ object ["message" .= ("Livro removido" :: String)]
         else do
           status status404
-          text "{\"error\":\"Livro não encontrado\"}"
+          json $ object ["error" .= ("Livro não encontrado" :: String)]
 
-    -- GET /books/filter?minRating=4 — filtra por avaliação
     get "/books/filter" $ do
       minStar <- queryParam "minRating"
       books   <- liftIO $ getAll store
-      setHeader "Content-Type" "application/json"
-      text $ pack $ booksToJson (filterByMinRating minStar books)
+      json (filterByMinRating minStar books)
