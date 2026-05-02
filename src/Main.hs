@@ -2,10 +2,11 @@
 
 module Main where
 
-import Web.Scotty
-import Network.Wai.Middleware.RequestLogger (logStdoutDev)
-import Control.Monad.IO.Class (liftIO)
-import Network.HTTP.Types.Status (status404)
+import Web.Scotty 
+import Network.Wai.Middleware.RequestLogger (logStdoutDev) 
+import Network.Wai.Middleware.Cors (simpleCors)
+import Control.Monad.IO.Class (liftIO) 
+import Network.HTTP.Types.Status (status404) 
 import Data.Aeson (object, (.=))
 
 import Types hiding (status)
@@ -15,8 +16,12 @@ import Store
 main :: IO ()
 main = do
   store <- newStore
-  scotty 3000 $ do
+  scotty 3005 $ do
     middleware logStdoutDev
+    middleware simpleCors
+
+    -- Rota para servir o frontend
+    get "/" $ file "index.html"
 
     get "/books" $ do
       books <- liftIO $ getAll store
