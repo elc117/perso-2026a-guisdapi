@@ -13,6 +13,7 @@ executable book-tracker
                        text,
                        wai-extra,
                        http-types,
-                       sqlite-simple
+                       sqlite-simple,
+                       wai-cors
   default-language:    Haskell2010
   ghc-options:         -threaded
