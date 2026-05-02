@@ -1,0 +1,9 @@
+{
+  "bookId": 1,
+  "title": "Engenharia de Software Moderna",
+  "totalPages": 395,
+  "readPages": 50,
+  "rating": 5,
+  "notes": "Leitura para a faculdade",
+  "status": "Reading"
+}

@@ -8,7 +8,7 @@ Este projeto é um sistema para gerenciar listas de leitura, desenvolvido como p
 
 * **Linguagem:** Haskell
 * **Framework Web:** [Scotty](https://hackage.haskell.org/package/scotty)
-* **Gerenciamento de Estado:** `IORef` (Banco de dados em memória) => tem que mudar pra SQLite
+* **Gerenciamento de Estado:** `SQLite` (Banco de dados em memória) 
 * **Testes:** [HUnit](https://hackage.haskell.org/package/HUnit)
 
 ## 📂 Estrutura do Projeto

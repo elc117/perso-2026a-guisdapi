@@ -8,7 +8,7 @@ import Control.Monad.IO.Class (liftIO)
 import Network.HTTP.Types.Status (status404)
 import Data.Aeson (object, (.=))
 
-import Types
+import Types hiding (status)
 import Logic
 import Store
 
@@ -21,6 +21,11 @@ main = do
     get "/books" $ do
       books <- liftIO $ getAll store
       json books -- Serialização segura via Aeson
+
+    get "/books/filter" $ do
+      minStar <- queryParam "minRating"
+      books   <- liftIO $ getAll store
+      json (filterByMinRating minStar books)
 
     get "/books/:id" $ do
       bid <- pathParam "id"
@@ -57,8 +62,3 @@ main = do
         else do
           status status404
           json $ object ["error" .= ("Livro não encontrado" :: String)]
-
-    get "/books/filter" $ do
-      minStar <- queryParam "minRating"
-      books   <- liftIO $ getAll store
-      json (filterByMinRating minStar books)
