@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Tracker</title>
+</head>
+<body>
+
+<script>
+const BASE = 'http://localhost:3000';
+
+async function doGetAll() {
+  const el = document.getElementById('resp-get');
+  const list = document.getElementById('books-list');
+  try {
+    const r = await fetch(`${BASE}/books`);
+    const data = await r.json();
+    renderBooks(data, list, el);
+  } catch(e) {
+    el.textContent = 'Erro: ' + e.message;
+  }
+}
+
+async function doPost() {
+  const el = document.getElementById('resp-post');
+  const body = {
+    bookId: parseInt(document.getElementById('add-id').value),
+    title: document.getElementById('add-title').value,
+    totalPages: parseInt(document.getElementById('add-total').value),
+    readPages: parseInt(document.getElementById('add-read').value),
+    rating: parseInt(document.getElementById('add-rating').value),
+    notes: document.getElementById('add-notes').value,
+    status: document.getElementById('add-status').value
+  };
+  try {
+    const r = await fetch(`${BASE}/books`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await r.json();
+    el.textContent = JSON.stringify(data, null, 2);
+  } catch(e) {
+    el.textContent = 'Erro: ' + e.message;
+  }
+}
+
+async function doDelete() {
+  const bid = document.getElementById('del-id').value;
+  const el = document.getElementById('resp-del');
+  try {
+    const r = await fetch(`${BASE}/books/${bid}`, { method: 'DELETE' });
+    const data = await r.json();
+    el.textContent = JSON.stringify(data, null, 2);
+  } catch(e) {
+    el.textContent = 'Erro: ' + e.message;
+  }
+}
+
+function renderBooks(books, listEl, respEl) {
+  listEl.innerHTML = '';
+  books.forEach(b => {
+    const pct = b.totalPages ? Math.round((b.readPages / b.totalPages) * 100) : 0;
+    listEl.innerHTML += `<li><strong>#${b.bookId} ${b.title}</strong> — ${b.status} — ${pct}% lido — nota ${b.rating}</li>`;
+  });
+  respEl.textContent = JSON.stringify(books, null, 2);
+}
+</script>
+
+<h2>Book Tracker</h2>
+
+<h3>GET /books</h3>
+<button onclick="doGetAll()">Buscar todos</button>
+<ul id="books-list"></ul>
+<pre id="resp-get"></pre>
+
+<h3>POST /books</h3>
+<label>id: <input id="add-id" type="number" value="1"></label>
+<label>título: <input id="add-title" value="Engenharia de Software Moderna"></label>
+<label>total: <input id="add-total" type="number" value="395"></label>
+<label>lidas: <input id="add-read" type="number" value="50"></label>
+<label>rating: <input id="add-rating" type="number" value="5"></label>
+<label>notas: <input id="add-notes" value="Leitura para a faculdade"></label>
+<label>status:
+  <select id="add-status">
+    <option>WantToRead</option>
+    <option selected>Reading</option>
+    <option>Finished</option>
+  </select>
+</label>
+<button onclick="doPost()">Adicionar</button>
+<pre id="resp-post"></pre>
+
+<h3>DELETE /books/:id</h3>
+<label>id: <input id="del-id" type="number" value="1"></label>
+<button onclick="doDelete()">Remover</button>
+<pre id="resp-del"></pre>
+
+</body>
+</html>
