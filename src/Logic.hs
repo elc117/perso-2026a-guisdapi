@@ -24,3 +24,28 @@ finished = filter (\b -> readPages b >= totalPages b && totalPages b > 0)
 averageRating :: [Book] -> Float
 averageRating [] = 0
 averageRating books = fromIntegral (sum (map rating books)) / fromIntegral (length books)
+
+-- Validação de dados com o tipo algébrico Either, se todos passarem retorna o próprio livro
+validateBook :: Book -> Either String Book
+validateBook book
+    | totalPages book <= 0 = Left "O livro deve ter pelo menos 1 pagina."
+    | readPages book < 0 = Left "O numero de paginas lidas nao pode ser negativo."
+    | readPages book > totalPages book = Left "Inconsistencia: paginas lidas excedem o total."
+    | rating book < 0 || rating book > 5 = Left "A nota de avaliacao deve estar entre 0 e 5."
+    | publishYear book > 2026 = Left "O ano de publicacao nao pode ser no futuro."
+    | otherwise = Right book
+
+-- Se a lista for vazia, devolvemos tudo zerado para evitar divisão por zero
+calculateStats :: [Book] -> Stats
+calculateStats [] = Stats 0 0 0.0 0 0
+calculateStats books = 
+    let tBooks = length books
+        tPagesRead = foldl (\acc b -> acc + readPages b) 0 books
+        totalRating = foldl (\acc b -> acc + rating b) 0 books
+        avgRating = fromIntegral totalRating / fromIntegral tBooks
+        
+        -- Sem aspas: comparamos a propriedade com o construtor do tipo Status
+        reading = length (filter (\b -> status b == Reading) books)
+        finished = length (filter (\b -> status b == Finished) books)
+        
+    in Stats tBooks tPagesRead avgRating reading finished

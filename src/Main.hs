@@ -8,6 +8,7 @@ import Network.Wai.Middleware.Cors (simpleCors)
 import Control.Monad.IO.Class (liftIO) 
 import Network.HTTP.Types.Status (status404) 
 import Data.Aeson (object, (.=))
+import Network.HTTP.Types.Status (badRequest400)
 
 import Types hiding (status)
 import Logic
@@ -41,24 +42,46 @@ main = do
           json $ object ["error" .= ("Livro não encontrado" :: String)]
         Just b  -> json b
 
-    -- POST reformulado: Recebe o payload JSON completo e faz o parse automático
+    get "/stats" $ do
+        -- 1. Busca todos os livros no banco de dados (Efeito Colateral / IO)
+        books <- liftIO $ getAll "books.db"
+        
+        -- 2. Passa os livros para a função pura (Sem IO)
+        let stats = calculateStats books
+        
+        -- 3. Devolve como JSON
+        json stats
+
     post "/books" $ do
-      bookReq <- jsonData
-      liftIO $ addBook store bookReq
-      json bookReq
+        newBook <- jsonData :: ActionM Book
+        
+        -- Avalia o resultado da função pura de validação
+        case validateBook newBook of
+            Left erroMsg -> do
+                -- Se caiu em alguma regra, devolve erro 400 (Bad Request)
+                status badRequest400 
+                json $ object ["error" .= erroMsg]
+                
+            Right bookValido -> do
+                -- Se a lógica aprovou, insere no SQLite
+                liftIO $ addBook "books.db" bookValido
+                json bookValido
 
     put "/books/:id" $ do
-      bid <- pathParam "id"
-      updated <- jsonData
-      -- Garante que a entidade atualizada respeite o ID da URL
-      let bookToUpdate = updated { bookId = bid }
-      ok <- liftIO $ updateBook store bookToUpdate
-      if ok
-        then json bookToUpdate
-        else do
-          status status404
-          json $ object ["error" .= ("Livro não encontrado" :: String)]
+        bid <- pathParam "id"
+        updatedBook <- jsonData :: ActionM Book
+        -- Forçamos o ID da URL no objeto para garantir consistência
+        let bookToSave = updatedBook { bookId = bid }
+        
+        case validateBook bookToSave of
+            Left erroMsg -> do
+                status badRequest400
+                json $ object ["error" .= erroMsg]
+            Right b -> do
+                liftIO $ updateBook "books.db" b -- Você precisará criar updateBook no Store.hs
+                json b
 
+    
     delete "/books/:id" $ do
       bid <- pathParam "id"
       ok  <- liftIO $ deleteBook store bid

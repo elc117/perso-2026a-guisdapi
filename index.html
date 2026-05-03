@@ -2,98 +2,257 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Book Tracker</title>
+  <title>Diário de Leitura</title>
+  <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+          font-family: "Times New Roman", Times, serif;
+          background-color: #fdfbf7; 
+          color: #3e3326;
+          line-height: 1.6;
+          padding: 2rem;
+      }
+      .container { max-width: 1200px; margin: 0 auto; }
+      h1 {
+          margin-bottom: 2rem; font-weight: bold; font-size: 2.5rem;
+          color: #5c4d3c; text-align: center; border-bottom: 2px solid #e8e1d5; padding-bottom: 1rem;
+      }
+      h3 {
+          margin-bottom: 1.2rem; font-size: 1.4rem; color: #5c4d3c;
+          border-bottom: 1px dashed #d6cbbd; padding-bottom: 0.5rem;
+      }
+      .layout-grid {
+          display: grid; grid-template-columns: 350px 1fr; gap: 2rem; align-items: start;
+      }
+      section {
+          background: #ffffff; padding: 1.5rem; border-radius: 4px;
+          box-shadow: 0 4px 12px rgba(139, 126, 102, 0.08); margin-bottom: 1.5rem; border: 1px solid #f0eadd;
+      }
+      label { display: block; margin-bottom: 0.4rem; font-size: 1rem; font-weight: bold; color: #695a48; }
+      input, select {
+          width: 100%; padding: 0.6rem; margin-bottom: 1.2rem; border: 1px solid #d6cbbd;
+          border-radius: 2px; font-family: inherit; font-size: 1rem; background-color: #faf8f2;
+      }
+      input:focus, select:focus { outline: none; border-color: #a89a85; background-color: #ffffff; }
+      button {
+          background-color: #a89a85; color: #ffffff; border: none; padding: 0.6rem 1.2rem;
+          border-radius: 2px; font-size: 1.1rem; font-family: inherit; cursor: pointer; transition: 0.2s;
+      }
+      button:hover { background-color: #827563; }
+      .btn-full { width: 100%; }
+      .btn-small { padding: 0.3rem 0.8rem; font-size: 0.9rem; margin-left: 0.5rem; }
+      .btn-danger { background-color: #b06a6a; }
+      .btn-danger:hover { background-color: #8c5252; }
+
+      #dashboard-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+      .stat-box { background-color: #f7f3ea; padding: 0.8rem; border: 1px solid #e8e1d5; text-align: center; }
+      .stat-box.full-width { grid-column: span 2; }
+      .stat-box strong { display: block; font-size: 1.4rem; color: #5c4d3c; margin-top: 0.2rem; }
+
+      ul { list-style: none; }
+      li { padding: 1.2rem 0; border-bottom: 1px solid #e8e1d5; }
+      li:last-child { border-bottom: none; }
+      
+      .book-meta { color: #8a7a66; font-size: 0.9rem; font-style: italic; margin-bottom: 6px; }
+  </style>
 </head>
 <body>
 
+<div class="container">
+    <h1>Diário de Leitura</h1>
+
+    <div class="layout-grid">
+        <div class="sidebar">
+            <section id="dashboard">
+                <h3>Estatísticas Globais</h3>
+                <div id="dashboard-stats">
+                    <div class="stat-box">Livros<br><strong id="stat-total-books">-</strong></div>
+                    <div class="stat-box">Páginas<br><strong id="stat-total-pages">-</strong></div>
+                    <div class="stat-box">Lendo<br><strong id="stat-reading">-</strong></div>
+                    <div class="stat-box">Lidos<br><strong id="stat-finished">-</strong></div>
+                    <div class="stat-box full-width">Nota Média<br><strong id="stat-avg-rating">-</strong></div>
+                </div>
+            </section>
+
+            <section>
+                <h3 id="form-title">Adicionar Livro</h3>
+                <input type="hidden" id="form-id" value="">
+                <label>Título: <input id="add-title"></label>
+                <label>Autor: <input id="add-author"></label>
+                <label>Gênero: <input id="add-genre" placeholder="Ex: Ficção Científica"></label>
+                <label>Ano de Lançamento: <input id="add-publishYear" type="number"></label>
+                <label>Total de Páginas: <input id="add-total" type="number"></label>
+                <label>Páginas Lidas: <input id="add-read" type="number"></label>
+                <label>Avaliação (0-5): <input id="add-rating" type="number"></label>
+                <label>Anotações: <input id="add-notes"></label>
+                <label>Status:
+                  <select id="add-status">
+                    <option value="WantToRead">Quero Ler</option>
+                    <option value="Reading" selected>Lendo</option>
+                    <option value="Finished">Lido</option>
+                  </select>
+                </label>
+                <button class="btn-full" id="submit-btn" onclick="saveBook()">Adicionar à Biblioteca</button>
+                <button class="btn-full" id="cancel-btn" onclick="resetForm()" style="display:none; margin-top:0.5rem; background-color:#8a7a66;">Cancelar Edição</button>
+            </section>
+        </div>
+
+        <div class="main-content">
+            <section style="min-height: 800px;">
+                <h3>Sua Biblioteca</h3>
+                <ul id="books-list"></ul>
+            </section>
+        </div>
+    </div>
+</div>
+
 <script>
 const BASE = '';
+let currentBooks = []; // Armazena o estado atual para edição
+
+window.onload = function() { fetchStats(); doGetAll(); };
 
 async function doGetAll() {
-  const el = document.getElementById('resp-get');
-  const list = document.getElementById('books-list');
   try {
     const r = await fetch(`${BASE}/books`);
-    const data = await r.json();
-    renderBooks(data, list, el);
-  } catch(e) {
-    el.textContent = 'Erro: ' + e.message;
-  }
+    currentBooks = await r.json();
+    renderBooks(currentBooks, document.getElementById('books-list'));
+  } catch(e) { console.error(e); }
 }
 
-async function doPost() {
-  const el = document.getElementById('resp-post');
+async function saveBook() {
+  const isEditing = document.getElementById('form-id').value !== "";
+  const bookId = isEditing ? parseInt(document.getElementById('form-id').value) : 0;
+  
+  const statInput = document.getElementById('add-status').value;
+  const totalP = parseInt(document.getElementById('add-total').value) || 0;
+  let readP = parseInt(document.getElementById('add-read').value) || 0;
+  if (statInput === "Finished") { readP = totalP; }
+
   const body = {
-    bookId: 0,
+    bookId: bookId,
     title: document.getElementById('add-title').value,
-    totalPages: parseInt(document.getElementById('add-total').value),
-    readPages: parseInt(document.getElementById('add-read').value),
-    rating: parseInt(document.getElementById('add-rating').value),
+    author: document.getElementById('add-author').value,
+    genre: document.getElementById('add-genre').value,
+    publishYear: parseInt(document.getElementById('add-publishYear').value) || 0,
+    totalPages: totalP,
+    readPages: readP,
+    rating: parseInt(document.getElementById('add-rating').value) || 0,
     notes: document.getElementById('add-notes').value,
-    status: document.getElementById('add-status').value
+    status: statInput
   };
+  
   try {
-    const r = await fetch(`${BASE}/books`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(body)
+    const url = isEditing ? `${BASE}/books/${bookId}` : `${BASE}/books`;
+    const method = isEditing ? 'PUT' : 'POST';
+    
+    const r = await fetch(url, {
+      method: method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
     });
-    const data = await r.json();
-    el.textContent = JSON.stringify(data, null, 2);
-  } catch(e) {
-    el.textContent = 'Erro: ' + e.message;
-  }
+    
+    if (!r.ok) {
+        const errorData = await r.json();
+        return alert("Erro: " + errorData.error);
+    }
+    resetForm();
+    doGetAll();
+    fetchStats();
+  } catch(e) { alert(e.message); }
 }
 
-async function doDelete() {
-  const bid = document.getElementById('del-id').value;
-  const el = document.getElementById('resp-del');
-  try {
-    const r = await fetch(`${BASE}/books/${bid}`, { method: 'DELETE' });
-    const data = await r.json();
-    el.textContent = JSON.stringify(data, null, 2);
-  } catch(e) {
-    el.textContent = 'Erro: ' + e.message;
-  }
+async function doDelete(id) {
+    if(!confirm("Tem certeza que deseja remover este livro?")) return;
+    try {
+        const r = await fetch(`${BASE}/books/${id}`, { method: 'DELETE' });
+        doGetAll(); fetchStats();
+    } catch(e) { alert("Erro ao deletar"); }
 }
 
-function renderBooks(books, listEl, respEl) {
+function loadForEdit(id) {
+    const book = currentBooks.find(b => b.bookId === id);
+    if(!book) return;
+    
+    document.getElementById('form-title').innerText = "Editar Livro";
+    document.getElementById('form-id').value = book.bookId;
+    document.getElementById('add-title').value = book.title;
+    document.getElementById('add-author').value = book.author;
+    document.getElementById('add-genre').value = book.genre;
+    document.getElementById('add-publishYear').value = book.publishYear;
+    document.getElementById('add-total').value = book.totalPages;
+    document.getElementById('add-read').value = book.readPages;
+    document.getElementById('add-rating').value = book.rating;
+    document.getElementById('add-notes').value = book.notes;
+    document.getElementById('add-status').value = book.status;
+    
+    document.getElementById('submit-btn').innerText = "Salvar Alterações";
+    document.getElementById('cancel-btn').style.display = "block";
+    window.scrollTo(0, 0); // Rola para o topo onde está o formulário
+}
+
+function resetForm() {
+    document.getElementById('form-title').innerText = "Adicionar Livro";
+    document.getElementById('form-id').value = "";
+    document.getElementById('add-title').value = "";
+    document.getElementById('add-author').value = "";
+    document.getElementById('add-genre').value = "";
+    document.getElementById('add-publishYear').value = "";
+    document.getElementById('add-total').value = "";
+    document.getElementById('add-read').value = "";
+    document.getElementById('add-rating').value = "";
+    document.getElementById('add-notes').value = "";
+    document.getElementById('add-status').value = "Reading";
+    
+    document.getElementById('submit-btn').innerText = "Adicionar à Biblioteca";
+    document.getElementById('cancel-btn').style.display = "none";
+}
+
+function renderBooks(books, listEl) {
   listEl.innerHTML = '';
+  const trad = { 'WantToRead': 'Quero Ler', 'Reading': 'Lendo', 'Finished': 'Lido' };
+
   books.forEach(b => {
     const pct = b.totalPages ? Math.round((b.readPages / b.totalPages) * 100) : 0;
-    listEl.innerHTML += `<li><strong>#${b.bookId} ${b.title}</strong> — ${b.status} — ${pct}% lido — nota ${b.rating}</li>`;
+    const isFinished = b.status === "Finished";
+    const statusColor = isFinished ? "#5b7056" : "#8a7a66"; 
+
+    listEl.innerHTML += `
+      <li>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+          <div>
+              <strong style="font-size: 1.2rem;">#${b.bookId} ${b.title}</strong>
+              <div class="book-meta">por ${b.author} (${b.publishYear}) • ${b.genre}</div>
+          </div>
+          <div>
+              <button class="btn-small" onclick="loadForEdit(${b.bookId})">Editar</button>
+              <button class="btn-small btn-danger" onclick="doDelete(${b.bookId})">X</button>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+            <span style="color: ${statusColor}; font-size: 0.95rem; font-weight:bold;">
+                ${trad[b.status] || b.status} — ${pct}% (${b.readPages}/${b.totalPages} pág) — ${b.rating}⭐
+            </span>
+        </div>
+        <div style="color: #695a48; margin-top: 6px; padding-left: 10px; border-left: 2px solid #e8e1d5;">
+          ${b.notes || 'Sem anotações...'} 
+        </div>
+      </li>`;
   });
-  respEl.textContent = JSON.stringify(books, null, 2);
+}
+
+async function fetchStats() {
+    try {
+        const response = await fetch(`${BASE}/stats`);
+        if (!response.ok) return;
+        const stats = await response.json();
+        document.getElementById('stat-total-books').innerText = stats.totalBooks;
+        document.getElementById('stat-total-pages').innerText = stats.totalPagesRead;
+        document.getElementById('stat-reading').innerText = stats.readingCount;
+        document.getElementById('stat-finished').innerText = stats.finishedCount;
+        const avg = isNaN(stats.averageRating) ? 0 : stats.averageRating;
+        document.getElementById('stat-avg-rating').innerText = avg.toFixed(1);
+    } catch (e) {}
 }
 </script>
-
-<h2>Book Tracker</h2>
-
-<h3>GET /books</h3>
-<button onclick="doGetAll()">Buscar todos</button>
-<ul id="books-list"></ul>
-<pre id="resp-get"></pre>
-
-<h3>POST /books</h3>
-<label>título: <input id="add-title" value="Engenharia de Software Moderna"></label>
-<label>total: <input id="add-total" type="number" value="395"></label>
-<label>lidas: <input id="add-read" type="number" value="50"></label>
-<label>rating: <input id="add-rating" type="number" value="5"></label>
-<label>notas: <input id="add-notes" value="Leitura para a faculdade"></label>
-<label>status:
-  <select id="add-status">
-    <option>WantToRead</option>
-    <option selected>Reading</option>
-    <option>Finished</option>
-  </select>
-</label>
-<button onclick="doPost()">Adicionar</button>
-<pre id="resp-post"></pre>
-
-<h3>DELETE /books/:id</h3>
-<label>id: <input id="del-id" type="number" value="1"></label>
-<button onclick="doDelete()">Remover</button>
-<pre id="resp-del"></pre>
 
 </body>
 </html>

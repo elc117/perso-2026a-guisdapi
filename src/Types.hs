@@ -28,23 +28,38 @@ instance FromField Status where
             [(val, "")] -> Ok val
             _           -> returnError ConversionFailed f "Invalid Status"
 
-data Book = Book 
-  { bookId     :: Int
-  , title      :: String
-  , totalPages :: Int
-  , readPages  :: Int
-  , rating     :: Int
-  , notes      :: String
-  , status     :: Status
-  } deriving (Show, Eq, Generic)
+data Book = Book
+    { bookId :: Int
+    , title :: String
+    , author :: String
+    , publishYear :: Int
+    , genre :: String
+    , totalPages :: Int
+    , readPages :: Int
+    , rating :: Int
+    , notes :: String
+    , status :: Status
+    } deriving (Show, Generic)
 
 instance ToJSON Book
 instance FromJSON Book
 
--- Mapeia as colunas da tabela (SELECT) para o objeto Book
 instance FromRow Book where
-  fromRow = Book <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+    -- Mapeia rigorosamente as 10 colunas vindas do SELECT no banco
+    fromRow = Book <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> (read <$> field)
 
--- Mapeia o objeto Book para os valores da tabela (INSERT)
 instance ToRow Book where
-  toRow (Book id_ t tp rp rat ns st) = toRow (id_, t, tp, rp, rat, ns, st)
+    -- Desestrutura os 10 atributos do Book e prepara para o banco de dados
+    toRow (Book id_ t auth year gen tp rp rat ns st) = 
+        toRow (id_, t, auth, year, gen, tp, rp, rat, ns, show st)
+
+-- Representa o payload de resposta da nossa rota de estatísticas
+data Stats = Stats
+    { totalBooks :: Int
+    , totalPagesRead :: Int
+    , averageRating :: Float
+    , readingCount :: Int
+    , finishedCount :: Int
+    } deriving (Show, Generic)
+
+instance ToJSON Stats
