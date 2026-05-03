@@ -1,4 +1,4 @@
-#Diário de Leitura em Haskell: Book Tracker
+# Diário de Leitura em Haskell: Book Tracker
 
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/xDmvZ4it)
 
@@ -15,6 +15,7 @@ Este projeto é um sistema para gerenciar listas de leitura, desenvolvido como p
 ## Estrutura do Projeto
 
 A organização dos arquivos segue o padrão arquitetural para projetos Haskell, separando rigorosamente a lógica de negócio pura da infraestrutura de rede e persistência:
+
 ```text
 src/
   Main.hs          # Inicialização do servidor Scotty, middlewares (CORS) e definição das rotas da API.
@@ -24,11 +25,12 @@ src/
 
 test/
   Spec.hs          # Suíte de testes automatizados com HUnit testando a camada `Logic.hs`.
-```text
+```
 
-## AI
+## Uso de Inteligência Artificial
 
-Este projeto foi desenvolvido utilizando os modelos Gemini e Claude como assistentes para:
+Este projeto foi desenvolvido utilizando os modelos Gemini e Claude como assistentes técnicos para:
+
 1. Agilizar a criação da estrutura de front-end (HTML/CSS minimalista e integração via `fetch` API no JavaScript).
 2. Auxiliar na configuração e "troubleshooting" do ambiente de desenvolvimento (Docker, Codespaces, Cabal e GHC).
 3. Esclarecer erros de compilação inerentes à rigidez do GHC (erros de indentação e `Arity Mismatch` em serialização de dados).
