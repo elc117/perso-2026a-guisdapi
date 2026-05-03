@@ -7,6 +7,9 @@ import Types
 
 type Store = String
 
+-- Funções monádicas que lidam com Efeitos Colaterais (assinatura 'IO').
+-- Fazem a fronteira entre a pureza do Haskell e o mundo externo (Banco de Dados).
+
 -- Inicializa o banco e cria a tabela se não existir
 newStore :: IO Store
 newStore = do

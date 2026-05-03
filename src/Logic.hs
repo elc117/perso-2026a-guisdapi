@@ -2,7 +2,7 @@ module Logic where
 
 import Types
 
-  -- Calcula a porcentagem de leitura (protegendo contra divisão por zero)
+-- Calcula a porcentagem de leitura (protegendo contra divisão por zero)
 calcProgress :: Book -> Float
 calcProgress book
   | totalPages book == 0 = 0
@@ -25,7 +25,8 @@ averageRating :: [Book] -> Float
 averageRating [] = 0
 averageRating books = fromIntegral (sum (map rating books)) / fromIntegral (length books)
 
--- Validação de dados com o tipo algébrico Either, se todos passarem retorna o próprio livro
+-- Validação de dados com o tipo algébrico Either
+-- Se falhar, retorna 'Left' com o erro. Se passar, retorna 'Right' com o livro.
 validateBook :: Book -> Either String Book
 validateBook book
     | totalPages book <= 0 = Left "O livro deve ter pelo menos 1 pagina."
@@ -35,7 +36,8 @@ validateBook book
     | publishYear book > 2026 = Left "O ano de publicacao nao pode ser no futuro."
     | otherwise = Right book
 
--- Se a lista for vazia, devolvemos tudo zerado para evitar divisão por zero
+-- Função que demonstra a aplicação de `foldl` sobre uma lista para compor um novo resultado.
+-- Se a lista for vazia, devolve tudo zerado para evitar divisão por zero
 calculateStats :: [Book] -> Stats
 calculateStats [] = Stats 0 0 0.0 0 0
 calculateStats books = 
@@ -44,7 +46,7 @@ calculateStats books =
         totalRating = foldl (\acc b -> acc + rating b) 0 books
         avgRating = fromIntegral totalRating / fromIntegral tBooks
         
-        -- Sem aspas: comparamos a propriedade com o construtor do tipo Status
+        -- Sem aspas: compara a propriedade com o construtor do tipo Status
         reading = length (filter (\b -> status b == Reading) books)
         finished = length (filter (\b -> status b == Finished) books)
         

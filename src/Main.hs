@@ -14,6 +14,10 @@ import Types hiding (status)
 import Logic
 import Store
 
+-- Módulo principal do servidor Web (usando Scotty)
+-- Agrega as rotas da API e delega as validações para a camada lógica (pura)
+-- e as operações de banco de dados para a camada Store (impura)
+
 main :: IO ()
 main = do
   store <- newStore
@@ -70,7 +74,7 @@ main = do
     put "/books/:id" $ do
         bid <- pathParam "id"
         updatedBook <- jsonData :: ActionM Book
-        -- Forçamos o ID da URL no objeto para garantir consistência
+        -- Força o ID da URL no objeto para garantir consistência
         let bookToSave = updatedBook { bookId = bid }
         
         case validateBook bookToSave of
@@ -78,7 +82,7 @@ main = do
                 status badRequest400
                 json $ object ["error" .= erroMsg]
             Right b -> do
-                liftIO $ updateBook "books.db" b -- Você precisará criar updateBook no Store.hs
+                liftIO $ updateBook "books.db" b
                 json b
 
     

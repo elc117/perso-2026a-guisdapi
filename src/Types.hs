@@ -10,6 +10,7 @@ import Database.SQLite.Simple.FromField
 import Database.SQLite.Simple.ToField
 import Database.SQLite.Simple.Ok
 
+-- Tipo Algébrico de Dados (ADT) para representar o status de leitura.
 data Status = WantToRead | Reading | Finished
   deriving (Show, Eq, Generic, Read)
 
@@ -28,6 +29,7 @@ instance FromField Status where
             [(val, "")] -> Ok val
             _           -> returnError ConversionFailed f "Invalid Status"
 
+-- Estrutura de dados central do sistema
 data Book = Book
     { bookId :: Int
     , title :: String
@@ -45,7 +47,7 @@ instance ToJSON Book
 instance FromJSON Book
 
 instance FromRow Book where
-    -- Mapeia rigorosamente as 10 colunas vindas do SELECT no banco
+    -- Mapeia as 10 colunas vindas do SELECT no banco
     fromRow = Book <$> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> field <*> (read <$> field)
 
 instance ToRow Book where
@@ -53,7 +55,7 @@ instance ToRow Book where
     toRow (Book id_ t auth year gen tp rp rat ns st) = 
         toRow (id_, t, auth, year, gen, tp, rp, rat, ns, show st)
 
--- Representa o payload de resposta da nossa rota de estatísticas
+-- Representa o payload de resposta da rota de estatísticas
 data Stats = Stats
     { totalBooks :: Int
     , totalPagesRead :: Int

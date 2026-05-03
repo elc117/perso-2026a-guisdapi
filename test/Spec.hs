@@ -2,35 +2,40 @@ import Test.HUnit
 import Logic
 import Types
 
+-- Livro base para testes
+livroTeste :: Book
+livroTeste = Book 1 "Vidas Secas" "Graciliano Ramos" 1938 "Romance" 120 60 5 "Incrível" Finished
+
 testCalcProgress :: Test
-testCalcProgress = TestCase (assertEqual "Progresso de 50%" 50.0 (calcProgress (Book 1 "Vidas Secas" 120 60 5 "Incrível" Finished)))
+testCalcProgress = TestCase (assertEqual "Progresso de 50%" 50.0 (calcProgress livroTeste))
 
-testFilterRating :: Test
-testFilterRating = TestCase $ do
-  let b1 = Book 1 "Livro A" 100 100 5 "" Finished
-  let b2 = Book 2 "Livro B" 100 50 3 "" Reading
-  assertEqual "Deve retornar apenas livros com nota >= 4" [b1] (filterByMinRating 4 [b1, b2])
+testValidateBookSuccess :: Test
+testValidateBookSuccess = TestCase $ 
+    case validateBook livroTeste of
+        Right _ -> return () -- Se retornou Right, o teste passou
+        Left _  -> assertFailure "Livro válido foi rejeitado pela lógica."
 
-testCalcProgressZeroPages :: Test
-testCalcProgressZeroPages = TestCase $
-  assertEqual "Progresso com 0 páginas" 0.0 (calcProgress (Book 1 "Vazio" 0 0 3 "" WantToRead))
+testValidateBookFutureYear :: Test
+testValidateBookFutureYear = TestCase $ 
+    let livroFuturo = livroTeste { publishYear = 2050 }
+    in case validateBook livroFuturo of
+        Left err -> assertEqual "Erro correto" "O ano de publicacao nao pode ser no futuro." err
+        Right _  -> assertFailure "Livro do futuro não foi bloqueado."
 
-testFilterEmptyList :: Test
-testFilterEmptyList = TestCase $
-  assertEqual "Filtro em lista vazia" [] (filterByMinRating 4 [])
-
-testFilterNoMatch :: Test
-testFilterNoMatch = TestCase $
-  assertEqual "Nenhum livro aprovado" [] (filterByMinRating 5 [Book 1 "X" 100 50 3 "" Reading])
+testValidateBookPagesError :: Test
+testValidateBookPagesError = TestCase $ 
+    let livroErro = livroTeste { readPages = 150, totalPages = 120 } -- Leu mais do que o total
+    in case validateBook livroErro of
+        Left err -> assertEqual "Erro correto" "Inconsistencia: paginas lidas excedem o total." err
+        Right _  -> assertFailure "Inconsistência de páginas não bloqueada."
 
 tests :: Test
 tests = TestList 
-  [ TestLabel "testCalcProgress" testCalcProgress
-  , TestLabel "testFilterRating" testFilterRating
-  , TestLabel "testCalcProgressZeroPages" testCalcProgressZeroPages
-  , TestLabel "testFilterEmptyList" testFilterEmptyList
-  , TestLabel "testFilterNoMatch" testFilterNoMatch
-  ]
+    [ TestLabel "testCalcProgress" testCalcProgress
+    , TestLabel "testValidateBookSuccess" testValidateBookSuccess
+    , TestLabel "testValidateBookFutureYear" testValidateBookFutureYear
+    , TestLabel "testValidateBookPagesError" testValidateBookPagesError
+    ]
 
 main :: IO Counts
 main = runTestTT tests

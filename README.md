@@ -24,3 +24,12 @@ src/
 
 test/
   Spec.hs          # Suíte de testes automatizados com HUnit testando a camada `Logic.hs`.
+
+## AI
+
+Este projeto foi desenvolvido utilizando os modelos Gemini e Claude como assistentes para:
+1. Agilizar a criação da estrutura de front-end (HTML/CSS minimalista e integração via `fetch` API no JavaScript).
+2. Auxiliar na configuração e "troubleshooting" do ambiente de desenvolvimento (Docker, Codespaces, Cabal e GHC).
+3. Esclarecer erros de compilação inerentes à rigidez do GHC (erros de indentação e `Arity Mismatch` em serialização de dados).
+
+Toda a lógica central, as validações de domínio (padrão funcional) e a integração entre o paradigma funcional e imperativo foram criticamente revisadas, entendidas e estruturadas pelo autor.
