@@ -16,7 +16,7 @@ import Store
 main :: IO ()
 main = do
   store <- newStore
-  scotty 3005 $ do
+  scotty 3000 $ do
     middleware logStdoutDev
     middleware simpleCors
 
