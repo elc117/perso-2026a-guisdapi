@@ -27,6 +27,9 @@ main = do
 
     -- Rota para servir o frontend
     get "/" $ file "index.html"
+    
+    get "/healthz" $ do
+        text "OK"
 
     get "/books" $ do
       books <- liftIO $ getAll store

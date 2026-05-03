@@ -43,10 +43,17 @@ calculateStats [] = Stats 0 0 0.0 0 0
 calculateStats books = 
     let tBooks = length books
         tPagesRead = foldl (\acc b -> acc + readPages b) 0 books
-        totalRating = foldl (\acc b -> acc + rating b) 0 books
-        avgRating = fromIntegral totalRating / fromIntegral tBooks
         
-        -- Sem aspas: compara a propriedade com o construtor do tipo Status
+        -- Isolamos estritamente os livros com avaliação válida
+        ratedBooks = filter (\b -> rating b > 0) books
+        ratedCount = length ratedBooks
+        totalRating = foldl (\acc b -> acc + rating b) 0 ratedBooks
+        
+        -- Cálculo da média protegido contra divisão por zero
+        avgRating = if ratedCount > 0 
+                    then fromIntegral totalRating / fromIntegral ratedCount 
+                    else 0.0
+        
         reading = length (filter (\b -> status b == Reading) books)
         finished = length (filter (\b -> status b == Finished) books)
         
