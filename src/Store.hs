@@ -35,7 +35,8 @@ getById dbPath bid = do
 addBook :: Store -> Book -> IO ()
 addBook dbPath book = do
     conn <- open dbPath
-    execute conn "INSERT INTO books (bookId, title, totalPages, readPages, rating, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?)" book
+    execute conn "INSERT INTO books (title, totalPages, readPages, rating, notes, status) VALUES (?, ?, ?, ?, ?, ?)" 
+        (title book, totalPages book, readPages book, rating book, notes book, status book)
     close conn
 
 updateBook :: Store -> Book -> IO Bool

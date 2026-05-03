@@ -7,7 +7,7 @@
 <body>
 
 <script>
-const BASE = 'http://localhost:3000';
+const BASE = '';
 
 async function doGetAll() {
   const el = document.getElementById('resp-get');
@@ -24,7 +24,7 @@ async function doGetAll() {
 async function doPost() {
   const el = document.getElementById('resp-post');
   const body = {
-    bookId: parseInt(document.getElementById('add-id').value),
+    bookId: 0,
     title: document.getElementById('add-title').value,
     totalPages: parseInt(document.getElementById('add-total').value),
     readPages: parseInt(document.getElementById('add-read').value),
@@ -75,7 +75,6 @@ function renderBooks(books, listEl, respEl) {
 <pre id="resp-get"></pre>
 
 <h3>POST /books</h3>
-<label>id: <input id="add-id" type="number" value="1"></label>
 <label>título: <input id="add-title" value="Engenharia de Software Moderna"></label>
 <label>total: <input id="add-total" type="number" value="395"></label>
 <label>lidas: <input id="add-read" type="number" value="50"></label>
