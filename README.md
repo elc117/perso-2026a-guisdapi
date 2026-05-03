@@ -23,7 +23,8 @@ src/
   Store.hs         # Camada de persistência (I/O) executando as queries SQL no banco `books.db`.
 
 test/
-  Spec.hs          # Suíte de testes automatizados com HUnit testando a camada `Logic.hs`.```
+  Spec.hs          # Suíte de testes automatizados com HUnit testando a camada `Logic.hs`.
+´´´
 
 ## AI
 
