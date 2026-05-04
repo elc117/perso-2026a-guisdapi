@@ -71,9 +71,16 @@ O projeto foi construído e executado originalmente utilizando um ambiente no Co
 
 ## 6. Deploy
 
+**Link do serviço publicado:** <(https://demo-scotty-codespace-2026a-99ws.onrender.com)>
+
+O deploy foi realizado utilizando a plataforma Render.com, seguindo a abordagem de *Infrastructure as Code* (IaC) através dos arquivos `render.yaml` e `Dockerfile` fornecidos. 
+
+Para que a aplicação em Haskell rodasse com sucesso na nuvem, precisei adaptar a infraestrutura do código:
+1. **Porta Dinâmica:** Substituí a porta estática (3000) no `Main.hs` pela captura da variável de ambiente injetada pelo provedor (`lookupEnv "PORT"`), garantindo que o servidor escutasse a porta designada pelo Render.
+2. **Health Check:** O Render exige uma rota de verificação de integridade. Implementei uma rota `GET /healthz` retornando "OK", evitando que o Load Balancer da plataforma derrubasse o contêiner por *timeout*.
+*(Nota: O banco de dados SQLite foi mantido com dados de teste para facilitar a avaliação, porém, como o disco da camada gratuita do Render é efêmero, os dados são resetados a cada novo deploy).*
 
 ---
-
 ## 7. Resultado final
 
 `<Substitua este texto pelo link ou tag do seu GIF/Vídeo demonstrando a inserção, edição e validação de um livro na interface web>`
@@ -104,6 +111,10 @@ O projeto foi construído e executado originalmente utilizando um ambiente no Co
 - **O que foi modificado ou descartado:** Ajustei as paletas de cores sugeridas no CSS para refletir um estilo mais voltado para "diário antigo".
 
 #### Interação 3 
+- **Objetivo da consulta:** Configurar e solucionar problemas de Deploy na plataforma Render e resolver conflitos de versionamento no Git.
+- **Trecho do prompt ou resumo fiel:** Enviei os logs de erro do terminal da nuvem (`Status: 404 Not Found` em `/healthz` seguido de `==> Timed Out`) e os logs do terminal local informando rejeição no `git push`.
+- **O que foi aproveitado:** O diagnóstico técnico de que a plataforma em nuvem exige uma rota específica de monitoramento (`/healthz`) para não matar o processo, e a necessidade de usar `System.Environment` para portas dinâmicas. Além disso, utilizei os comandos de `git pull origin main --rebase` para resolver o conflito de histórico entre o ambiente Codespaces e as edições feitas diretamente no GitHub.
+- **O que foi modificado ou descartado:** Uma sugestão anterior da IA sobre realizar o deploy prematuramente foi descartada e ignorada, pois a suíte de testes do HUnit ainda não havia sido executada e a infraestrutura de rotas não estava pronta para a nuvem.
 
 ---
 
