@@ -83,7 +83,12 @@ Para que a aplicação em Haskell rodasse com sucesso na nuvem, precisei adaptar
 ---
 ## 7. Resultado final
 
-`<Substitua este texto pelo link ou tag do seu GIF/Vídeo demonstrando a inserção, edição e validação de um livro na interface web>`
+`https://github.com/user-attachments/assets/aa2e4faa-001b-4413-a845-74a1fb681777`
+**O que está sendo demonstrado no vídeo acima:**
+1. Acesso à aplicação em ambiente de produção (nuvem Render).
+2. **Update (Atualização):** Edição do livro "Jogos Vorazes", alterando o status para "Lido", o que aciona as funções puras de Haskell para recalcular e atualizar automaticamente as Estatísticas Globais (aumentando a Nota Média).
+3. **Create (Inserção):** Adição de um novo livro à biblioteca ("Pessoas Normais").
+4. **Delete (Exclusão):** Remoção de um registro ("O Conto de Aia") da persistência do banco de dados, recalculando o painel novamente.
 
 ---
 
