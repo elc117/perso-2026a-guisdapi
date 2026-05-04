@@ -71,7 +71,7 @@ O projeto foi construído e executado originalmente utilizando um ambiente no Co
 
 ## 6. Deploy
 
-**Link do serviço publicado:** <(https://demo-scotty-codespace-2026a-99ws.onrender.com)>
+**Link do serviço publicado:** https://demo-scotty-codespace-2026a-99ws.onrender.com
 
 O deploy foi realizado utilizando a plataforma Render.com, seguindo a abordagem de *Infrastructure as Code* (IaC) através dos arquivos `render.yaml` e `Dockerfile` fornecidos. 
 
